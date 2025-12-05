@@ -13,6 +13,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  scroll-behavior: smooth;
 }
 
 .page {
@@ -188,6 +189,12 @@ body {
   color: #fff;
 }
 
+.badge.subtle {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e9e7f1;
+}
+
 .color-wheel {
   margin: 18px auto;
   width: 180px;
@@ -334,6 +341,24 @@ label {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.color-picker {
+  display: grid;
+  gap: 8px;
+  align-items: center;
+}
+
+.accent-preview {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+  color: #fff;
+  min-width: 90px;
+  text-align: center;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.22);
 }
 
 .chips {
