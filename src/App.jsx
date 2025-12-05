@@ -1,4 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
+
+const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
+const TOGETHER_API_KEY =
+  import.meta.env.VITE_TOGETHER_API_KEY ||
+  'd9bc21bb4dccafd70d81a9359655be41176e08d8db07f00ea2a0dfbbd5024afe'
 
 const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
 
@@ -39,6 +44,69 @@ const lenses = ['50mm f1.8', '85mm f1.8', '35mm f2.0', '105mm macro', 'Anamorphi
 const aspectRatios = ['1:1', '3:4', '16:9']
 
 const paletteModes = ['Análoga', 'Complementar', 'Triádica']
+
+const presets = [
+  {
+    name: 'Neon futurista',
+    description: 'Retrato editorial com neon, contrastes fortes e rim light.',
+    values: {
+      idea: 'Retrato editorial futurista com neon violeta e ciano em ambiente urbano.',
+      subject: 'Retrato cyberpunk com displays holográficos',
+      shotType: 'Medium shot',
+      cameraAngle: 'Eye-level',
+      mood: 'Confident',
+      style: 'Cyber/futuristic',
+      environment: 'Futuristic city',
+      colorGrade: 'Teal and orange',
+      lighting: 'Neon reflections',
+      lens: '85mm f1.8',
+      aspectRatio: '3:4',
+      paletteMode: 'Complementar',
+      accent: '#7c3aed',
+      negatives: 'ruído, borrado, proporções estranhas, watermark',
+    },
+  },
+  {
+    name: 'Café minimalista',
+    description: 'Cena serena com palette quente e luz de janela.',
+    values: {
+      idea: 'Cena calma de barista artesanal em cafeteria minimalista.',
+      subject: 'Barista preparando café V60 com cuidado',
+      shotType: 'Medium shot',
+      cameraAngle: 'Eye-level',
+      mood: 'Serene',
+      style: 'Minimal',
+      environment: 'Café interior',
+      colorGrade: 'Warm tones',
+      lighting: 'Window light',
+      lens: '50mm f1.8',
+      aspectRatio: '3:4',
+      paletteMode: 'Análoga',
+      accent: '#d97706',
+      negatives: 'grão alto, sombras duras, pessoas extras',
+    },
+  },
+  {
+    name: 'Natureza mística',
+    description: 'Mood contemplativo, florestas e luz dourada.',
+    values: {
+      idea: 'Figura solitária caminhando por floresta enevoada com raios de sol.',
+      subject: 'Explorador em floresta com raios de sol filtrados',
+      shotType: 'Wide shot',
+      cameraAngle: 'Low angle',
+      mood: 'Dramatic',
+      style: 'Vintage film',
+      environment: 'Forest path',
+      colorGrade: 'Muted cinematic',
+      lighting: 'Golden-hour glow',
+      lens: '35mm f2.0',
+      aspectRatio: '16:9',
+      paletteMode: 'Triádica',
+      accent: '#0ea5e9',
+      negatives: 'neblina exagerada, flare excessivo, figuras duplas',
+    },
+  },
+]
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max)
 
@@ -361,10 +429,16 @@ export default function App() {
             estrutura <strong>[beginning] [middle] [end]</strong>, com espaço para palette e negatives.
           </p>
           <div className="hero-actions">
-            <button className="primary" onClick={handleIdeaApply}>
+            <button
+              className="primary"
+              onClick={() => {
+                handleIdeaApply()
+                scrollToSection(subjectRef)
+              }}
+            >
               Aplicar ideia vaga
             </button>
-            <button className="ghost" type="button">
+            <button className="ghost" type="button" onClick={() => scrollToSection(presetsRef)}>
               Explorar presets
             </button>
           </div>
@@ -426,7 +500,7 @@ export default function App() {
           {ideaError ? <p className="error-text">{ideaError}</p> : null}
         </section>
 
-        <section className="card">
+        <section className="card" ref={subjectRef}>
           <p className="eyebrow">2. Assunto</p>
           <input
             type="text"
@@ -439,6 +513,39 @@ export default function App() {
               <button key={chip} type="button" className="chip" onClick={() => setSubject(chip)}>
                 {chip}
               </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="card" ref={presetsRef}>
+          <div className="card-header">
+            <div>
+              <p className="eyebrow">Presets</p>
+              <h2>Combinações rápidas</h2>
+              <p className="mini">Aplique um pacote completo de ideia, mood, lente e paleta.</p>
+            </div>
+          </div>
+          <div className="preset-grid">
+            {presets.map((preset) => (
+              <div key={preset.name} className="preset-card">
+                <div className="preset-top">
+                  <span className="badge subtle">{preset.name}</span>
+                  <div
+                    className="preset-color"
+                    style={{ background: preset.values.accent }}
+                    aria-hidden
+                  />
+                </div>
+                <p className="mini">{preset.description}</p>
+                <div className="preset-meta">
+                  <span>{preset.values.style}</span>
+                  <span>{preset.values.environment}</span>
+                  <span>{preset.values.lighting}</span>
+                </div>
+                <button className="ghost" type="button" onClick={() => applyPreset(preset)}>
+                  Aplicar preset
+                </button>
+              </div>
             ))}
           </div>
         </section>
