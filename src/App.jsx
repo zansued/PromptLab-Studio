@@ -347,7 +347,12 @@ export default function App() {
   }
 
   return (
-    <div className="page">
+    <div className="page" style={{ '--accent': accent }}>
+      <div className="background-glow" aria-hidden>
+        <span className="glow glow-1" />
+        <span className="glow glow-2" />
+        <span className="glow glow-3" />
+      </div>
       <header className="hero">
         <div>
           <p className="eyebrow">PromptLab Studio • V1</p>
@@ -389,6 +394,11 @@ export default function App() {
           </div>
           <p className="preview-label">Harmonia {paletteMode}</p>
           <p className="mini">Um ponto de partida visual rápido para o prompt.</p>
+          <div className="preview-legend">
+            <span>Cor base</span>
+            <span>Contraste</span>
+            <span>Acabamento</span>
+          </div>
         </div>
       </header>
 
@@ -583,8 +593,12 @@ export default function App() {
             {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
             {!errorMessage && imageUrl ? (
               <div className="image-preview">
-                <p className="eyebrow">Prévia Together</p>
+                <div className="image-preview-header">
+                  <p className="eyebrow">Prévia Together</p>
+                  <span className="badge subtle">{TOGETHER_MODEL}</span>
+                </div>
                 <img src={imageUrl} alt="Imagem gerada pela Together" />
+                <p className="mini">Render com cores e luzes aplicadas automaticamente.</p>
               </div>
             ) : null}
           </div>
