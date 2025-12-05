@@ -19,11 +19,10 @@ PromptLab Studio é uma aplicação web de página única que combina design de 
    git clone <url-do-repo>
    cd PromptLab-Studio
    ```
-2. Instale as dependências (versões já pinadas para evitar erros de `notarget` no Vercel):
+2. Instale as dependências:
    ```bash
    npm install
    ```
-   - Caso tenha cache antigo, execute `npm cache clean --force` antes de instalar.
 3. Execute o ambiente de desenvolvimento com recarregamento automático:
    ```bash
    npm run dev
