@@ -346,7 +346,12 @@ export default function App() {
   }
 
   return (
-    <div className="page">
+    <div className="page" style={{ '--accent': accent }}>
+      <div className="background-glow" aria-hidden>
+        <span className="glow glow-1" />
+        <span className="glow glow-2" />
+        <span className="glow glow-3" />
+      </div>
       <header className="hero">
         <div>
           <p className="eyebrow">PromptLab Studio • V1</p>
@@ -388,6 +393,11 @@ export default function App() {
           </div>
           <p className="preview-label">Harmonia {paletteMode}</p>
           <p className="mini">Um ponto de partida visual rápido para o prompt.</p>
+          <div className="preview-legend">
+            <span>Cor base</span>
+            <span>Contraste</span>
+            <span>Acabamento</span>
+          </div>
         </div>
       </header>
 
