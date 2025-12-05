@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react'
 
+const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
+const TOGETHER_API_KEY =
+  import.meta.env.VITE_TOGETHER_API_KEY ||
+  'd9bc21bb4dccafd70d81a9359655be41176e08d8db07f00ea2a0dfbbd5024afe'
+
 const shotTypes = [
   'Close-up',
   'Medium shot',
@@ -177,6 +182,11 @@ export default function App() {
   )
   const [accent, setAccent] = useState('#7c3aed')
   const [paletteMode, setPaletteMode] = useState('Análoga')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [isIdeaGenerating, setIsIdeaGenerating] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [ideaError, setIdeaError] = useState('')
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
 
@@ -220,12 +230,120 @@ export default function App() {
 
   const handleAccentChange = (event) => setAccent(event.target.value)
 
-  const handleIdeaApply = () => {
-    const condensed = idea.trim()
+  const applyIdeaToSubject = (ideaText) => {
+    const condensed = ideaText.trim()
     if (!condensed) return
     const words = condensed.split(/[,.;]/)
     const baseSubject = words[0]
     setSubject(baseSubject.charAt(0).toUpperCase() + baseSubject.slice(1))
+  }
+
+  const handleIdeaApply = () => applyIdeaToSubject(idea)
+
+  const handleGenerateIdea = async () => {
+    if (!TOGETHER_API_KEY) {
+      setIdeaError('Defina VITE_TOGETHER_API_KEY no ambiente para gerar textos.')
+      return
+    }
+
+    setIsIdeaGenerating(true)
+    setIdeaError('')
+
+    try {
+      const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${TOGETHER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'ServiceNow-AI/Apriel-1.5-15b-Thinker',
+          messages: [
+            {
+              role: 'system',
+              content:
+                'Você cria ideias curtas em português para gerar prompts visuais. Retorne apenas uma ideia concisa.',
+            },
+            {
+              role: 'user',
+              content:
+                'Sugira uma ideia curta, criativa e específica para gerar imagens de IA. Mencione personagem, ação e ambiente.',
+            },
+          ],
+          temperature: 0.8,
+          max_tokens: 150,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        const message = result?.error?.message || 'Falha ao gerar texto. Tente novamente.'
+        throw new Error(message)
+      }
+
+      const generated = result?.choices?.[0]?.message?.content?.trim()
+      if (!generated) {
+        throw new Error('Resposta da IA não trouxe um texto utilizável.')
+      }
+
+      setIdea(generated)
+      applyIdeaToSubject(generated)
+    } catch (error) {
+      setIdeaError(error.message)
+    } finally {
+      setIsIdeaGenerating(false)
+    }
+  }
+
+  const handleGenerateImage = async () => {
+    if (!prompt) return
+
+    if (!TOGETHER_API_KEY) {
+      setErrorMessage('Defina VITE_TOGETHER_API_KEY no ambiente para gerar imagens.')
+      return
+    }
+
+    setIsGenerating(true)
+    setErrorMessage('')
+
+    try {
+      const response = await fetch('https://api.together.xyz/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${TOGETHER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: TOGETHER_MODEL,
+          prompt,
+          disable_safety_checker: false,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        const message = result?.error?.message || 'Falha ao gerar imagem. Tente novamente.'
+        throw new Error(message)
+      }
+
+      const candidate =
+        result?.data?.[0]?.url || result?.data?.[0]?.b64_json || result?.data?.[0]?.image_base64
+
+      if (!candidate) {
+        throw new Error('Resposta da API não trouxe uma imagem utilizável.')
+      }
+
+      const asDataUri = candidate.startsWith('http')
+        ? candidate
+        : `data:image/png;base64,${candidate}`
+
+      setImageUrl(asDataUri)
+    } catch (error) {
+      setErrorMessage(error.message)
+      setImageUrl('')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -281,8 +399,13 @@ export default function App() {
               <p className="eyebrow">1. Ideia vaga</p>
               <h2>Contexto em português</h2>
             </div>
-            <button className="ghost" type="button" onClick={handleIdeaApply}>
-              Gerar assunto
+            <button
+              className="ghost"
+              type="button"
+              onClick={handleGenerateIdea}
+              disabled={isIdeaGenerating}
+            >
+              {isIdeaGenerating ? 'Gerando com IA...' : 'Gerar assunto'}
             </button>
           </div>
           <textarea
@@ -291,6 +414,7 @@ export default function App() {
             placeholder="Descreva o que deseja ver..."
           />
           <p className="helper">Aplicar ideia vaga define o assunto do prompt automaticamente.</p>
+          {ideaError ? <p className="error-text">{ideaError}</p> : null}
         </section>
 
         <section className="card">
@@ -451,9 +575,18 @@ export default function App() {
             <button className="primary" type="button">
               Copiar prompt
             </button>
-            <button className="ghost" type="button">
-              Gerar imagem (placeholder)
+            <button className="ghost" type="button" onClick={handleGenerateImage} disabled={isGenerating}>
+              {isGenerating ? 'Gerando imagem...' : 'Gerar imagem'}
             </button>
+          </div>
+          <div className="generation-status">
+            {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
+            {!errorMessage && imageUrl ? (
+              <div className="image-preview">
+                <p className="eyebrow">Prévia Together</p>
+                <img src={imageUrl} alt="Imagem gerada pela Together" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>
