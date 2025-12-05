@@ -5,6 +5,8 @@ const TOGETHER_API_KEY =
   import.meta.env.VITE_TOGETHER_API_KEY ||
   'd9bc21bb4dccafd70d81a9359655be41176e08d8db07f00ea2a0dfbbd5024afe'
 
+const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
+
 const shotTypes = [
   'Close-up',
   'Medium shot',
@@ -250,8 +252,6 @@ export default function App() {
   const [imageUrl, setImageUrl] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [ideaError, setIdeaError] = useState('')
-  const presetsRef = useRef(null)
-  const subjectRef = useRef(null)
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
 
@@ -305,30 +305,9 @@ export default function App() {
 
   const handleIdeaApply = () => applyIdeaToSubject(idea)
 
-  const scrollToSection = (ref) => {
-    ref?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
-  const applyPreset = (preset) => {
-    const values = preset.values
-    setIdea(values.idea)
-    setSubject(values.subject)
-    setShotType(values.shotType)
-    setCameraAngle(values.cameraAngle)
-    setMood(values.mood)
-    setStyle(values.style)
-    setEnvironment(values.environment)
-    setColorGrade(values.colorGrade)
-    setLighting(values.lighting)
-    setLens(values.lens)
-    setAspectRatio(values.aspectRatio)
-    setPaletteMode(values.paletteMode)
-    setAccent(values.accent)
-    setNegatives(values.negatives)
-  }
-
   const handleGenerateIdea = async () => {
-    if (!TOGETHER_API_KEY) {
+    const apiKey = import.meta.env.VITE_TOGETHER_API_KEY
+    if (!apiKey) {
       setIdeaError('Defina VITE_TOGETHER_API_KEY no ambiente para gerar textos.')
       return
     }
@@ -340,7 +319,7 @@ export default function App() {
       const response = await fetch('https://api.together.xyz/v1/chat/completions', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${TOGETHER_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -385,7 +364,8 @@ export default function App() {
   const handleGenerateImage = async () => {
     if (!prompt) return
 
-    if (!TOGETHER_API_KEY) {
+    const apiKey = import.meta.env.VITE_TOGETHER_API_KEY
+    if (!apiKey) {
       setErrorMessage('Defina VITE_TOGETHER_API_KEY no ambiente para gerar imagens.')
       return
     }
@@ -397,7 +377,7 @@ export default function App() {
       const response = await fetch('https://api.together.xyz/v1/images/generations', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${TOGETHER_API_KEY}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -719,12 +699,8 @@ export default function App() {
             {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
             {!errorMessage && imageUrl ? (
               <div className="image-preview">
-                <div className="image-preview-header">
-                  <p className="eyebrow">Prévia Together</p>
-                  <span className="badge subtle">{TOGETHER_MODEL}</span>
-                </div>
+                <p className="eyebrow">Prévia Together</p>
                 <img src={imageUrl} alt="Imagem gerada pela Together" />
-                <p className="mini">Render com cores e luzes aplicadas automaticamente.</p>
               </div>
             ) : null}
           </div>
