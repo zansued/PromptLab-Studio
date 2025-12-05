@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 
+const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
+
 const shotTypes = [
   'Close-up',
   'Medium shot',
@@ -177,6 +179,9 @@ export default function App() {
   )
   const [accent, setAccent] = useState('#7c3aed')
   const [paletteMode, setPaletteMode] = useState('Análoga')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [imageUrl, setImageUrl] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
 
@@ -226,6 +231,58 @@ export default function App() {
     const words = condensed.split(/[,.;]/)
     const baseSubject = words[0]
     setSubject(baseSubject.charAt(0).toUpperCase() + baseSubject.slice(1))
+  }
+
+  const handleGenerateImage = async () => {
+    if (!prompt) return
+
+    const apiKey = import.meta.env.VITE_TOGETHER_API_KEY
+    if (!apiKey) {
+      setErrorMessage('Defina VITE_TOGETHER_API_KEY no ambiente para gerar imagens.')
+      return
+    }
+
+    setIsGenerating(true)
+    setErrorMessage('')
+
+    try {
+      const response = await fetch('https://api.together.xyz/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: TOGETHER_MODEL,
+          prompt,
+          disable_safety_checker: false,
+        }),
+      })
+
+      const result = await response.json()
+      if (!response.ok) {
+        const message = result?.error?.message || 'Falha ao gerar imagem. Tente novamente.'
+        throw new Error(message)
+      }
+
+      const candidate =
+        result?.data?.[0]?.url || result?.data?.[0]?.b64_json || result?.data?.[0]?.image_base64
+
+      if (!candidate) {
+        throw new Error('Resposta da API não trouxe uma imagem utilizável.')
+      }
+
+      const asDataUri = candidate.startsWith('http')
+        ? candidate
+        : `data:image/png;base64,${candidate}`
+
+      setImageUrl(asDataUri)
+    } catch (error) {
+      setErrorMessage(error.message)
+      setImageUrl('')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -451,9 +508,18 @@ export default function App() {
             <button className="primary" type="button">
               Copiar prompt
             </button>
-            <button className="ghost" type="button">
-              Gerar imagem (placeholder)
+            <button className="ghost" type="button" onClick={handleGenerateImage} disabled={isGenerating}>
+              {isGenerating ? 'Gerando imagem...' : 'Gerar imagem'}
             </button>
+          </div>
+          <div className="generation-status">
+            {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
+            {!errorMessage && imageUrl ? (
+              <div className="image-preview">
+                <p className="eyebrow">Prévia Together</p>
+                <img src={imageUrl} alt="Imagem gerada pela Together" />
+              </div>
+            ) : null}
           </div>
         </section>
       </main>

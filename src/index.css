@@ -82,6 +82,13 @@ body {
   color: #e9e7f1;
 }
 
+.ghost:disabled,
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .ghost:hover {
   background: rgba(255, 255, 255, 0.08);
 }
@@ -293,6 +300,31 @@ label {
   flex-wrap: wrap;
   color: #c8c5d9;
   font-size: 0.95rem;
+}
+
+.generation-status {
+  margin-top: 12px;
+}
+
+.error-text {
+  color: #fda4af;
+  margin: 0;
+}
+
+.image-preview {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.image-preview img {
+  width: 100%;
+  max-width: 360px;
+  border-radius: 12px;
+  display: block;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .pill {
