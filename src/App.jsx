@@ -257,6 +257,7 @@ export default function App() {
   const [upscaledImageUrl, setUpscaledImageUrl] = useState('')
   const [upscaleError, setUpscaleError] = useState('')
   const [preferBase64, setPreferBase64] = useState(true)
+  const [useImageProxy, setUseImageProxy] = useState(true)
   const [imageNotice, setImageNotice] = useState('')
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
@@ -463,7 +464,7 @@ export default function App() {
 
       if (candidate.startsWith('http')) {
         setImageNotice(
-          'A imagem foi retornada como URL remota. Para upscale local, ative "Preferir base64".',
+          'A imagem foi retornada como URL remota. Para upscale local, ative "Preferir base64" ou use o proxy.',
         )
       }
 
@@ -476,6 +477,23 @@ export default function App() {
     }
   }
 
+  const loadImageFromSource = (sourceUrl) =>
+    new Promise((resolve, reject) => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.onerror = () => reject(new Error('Não foi possível carregar a imagem para upscale.'))
+      img.src = sourceUrl
+    })
+
+  const fetchImageViaProxy = async (remoteUrl) => {
+    const proxyResponse = await fetch(`/api/image-proxy?url=${encodeURIComponent(remoteUrl)}`)
+    if (!proxyResponse.ok) {
+      throw new Error('Falha ao buscar a imagem via proxy.')
+    }
+    const blob = await proxyResponse.blob()
+    return URL.createObjectURL(blob)
+  }
+
   const handleUpscaleImage = async () => {
     if (!imageUrl) return
 
@@ -483,13 +501,16 @@ export default function App() {
     setUpscaleError('')
 
     try {
-      const loadedImage = await new Promise((resolve, reject) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => resolve(img)
-        img.onerror = () => reject(new Error('Não foi possível carregar a imagem para upscale.'))
-        img.src = imageUrl
-      })
+      const isRemoteUrl = imageUrl.startsWith('http')
+      let objectUrl
+      let imageSource = imageUrl
+
+      if (isRemoteUrl && useImageProxy) {
+        objectUrl = await fetchImageViaProxy(imageUrl)
+        imageSource = objectUrl
+      }
+
+      const loadedImage = await loadImageFromSource(imageSource)
 
       const scale = upscaleScale
       const canvas = document.createElement('canvas')
@@ -507,6 +528,10 @@ export default function App() {
 
       const dataUrl = canvas.toDataURL('image/png')
       setUpscaledImageUrl(dataUrl)
+
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl)
+      }
     } catch (error) {
       setUpscaleError(
         error.message ||
@@ -824,15 +849,27 @@ export default function App() {
             <span>Lens: {lens}</span>
             <span>AR: {aspectRatio}</span>
           </div>
-          <div className="field-inline toggle-row">
-            <label>
-              <input
-                type="checkbox"
-                checked={preferBase64}
-                onChange={(event) => setPreferBase64(event.target.checked)}
-              />
-              Preferir base64 (evita CORS no upscale)
-            </label>
+          <div className="toggle-stack">
+            <div className="field-inline toggle-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={preferBase64}
+                  onChange={(event) => setPreferBase64(event.target.checked)}
+                />
+                Preferir base64 (evita CORS no upscale)
+              </label>
+            </div>
+            <div className="field-inline toggle-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={useImageProxy}
+                  onChange={(event) => setUseImageProxy(event.target.checked)}
+                />
+                Usar proxy para URLs remotas
+              </label>
+            </div>
           </div>
           <div className="cta-row">
             <button className="primary" type="button">

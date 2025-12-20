@@ -487,6 +487,10 @@ label {
   margin-top: 12px;
 }
 
+.toggle-stack {
+  display: grid;
+}
+
 .toggle-row label {
   display: inline-flex;
   align-items: center;
