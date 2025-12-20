@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
 const TOGETHER_API_KEY =
@@ -317,8 +317,9 @@ export default function App() {
     setAccent(hslToHex(hue, 0.72, 0.58))
   }
 
-  const scrollToSection = (sectionRef) => {
-    sectionRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const scrollToSection = (sectionId) => {
+    const section = document.getElementById(sectionId)
+    section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   const applyPreset = (preset) => {
@@ -478,12 +479,16 @@ export default function App() {
               className="primary"
               onClick={() => {
                 handleIdeaApply()
-                scrollToSection(subjectRef)
+                scrollToSection('subject-section')
               }}
             >
               Aplicar ideia vaga
             </button>
-            <button className="ghost" type="button" onClick={() => scrollToSection(presetsRef)}>
+            <button
+              className="ghost"
+              type="button"
+              onClick={() => scrollToSection('presets-section')}
+            >
               Explorar presets
             </button>
           </div>
@@ -557,7 +562,7 @@ export default function App() {
           {ideaError ? <p className="error-text">{ideaError}</p> : null}
         </section>
 
-        <section className="card" ref={subjectRef}>
+        <section className="card" id="subject-section">
           <p className="eyebrow">2. Assunto</p>
           <input
             type="text"
@@ -574,7 +579,7 @@ export default function App() {
           </div>
         </section>
 
-        <section className="card" ref={presetsRef}>
+        <section className="card" id="presets-section">
           <div className="card-header">
             <div>
               <p className="eyebrow">Presets</p>
