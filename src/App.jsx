@@ -42,6 +42,7 @@ const lenses = ['50mm f1.8', '85mm f1.8', '35mm f2.0', '105mm macro', 'Anamorphi
 const aspectRatios = ['1:1', '3:4', '16:9']
 
 const paletteModes = ['Análoga', 'Complementar', 'Triádica']
+const upscaleScales = [2, 4]
 
 const presets = [
   {
@@ -251,6 +252,12 @@ export default function App() {
   const [imageUrl, setImageUrl] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [ideaError, setIdeaError] = useState('')
+  const [isUpscaling, setIsUpscaling] = useState(false)
+  const [upscaleScale, setUpscaleScale] = useState(2)
+  const [upscaledImageUrl, setUpscaledImageUrl] = useState('')
+  const [upscaleError, setUpscaleError] = useState('')
+  const [preferBase64, setPreferBase64] = useState(true)
+  const [imageNotice, setImageNotice] = useState('')
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
 
@@ -418,6 +425,9 @@ export default function App() {
 
     setIsGenerating(true)
     setErrorMessage('')
+    setUpscaledImageUrl('')
+    setUpscaleError('')
+    setImageNotice('')
 
     try {
       const response = await fetch('https://api.together.xyz/v1/images/generations', {
@@ -430,6 +440,7 @@ export default function App() {
           model: TOGETHER_MODEL,
           prompt,
           disable_safety_checker: false,
+          ...(preferBase64 ? { response_format: 'b64_json' } : {}),
         }),
       })
 
@@ -450,12 +461,59 @@ export default function App() {
         ? candidate
         : `data:image/png;base64,${candidate}`
 
+      if (candidate.startsWith('http')) {
+        setImageNotice(
+          'A imagem foi retornada como URL remota. Para upscale local, ative "Preferir base64".',
+        )
+      }
+
       setImageUrl(asDataUri)
     } catch (error) {
       setErrorMessage(error.message)
       setImageUrl('')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleUpscaleImage = async () => {
+    if (!imageUrl) return
+
+    setIsUpscaling(true)
+    setUpscaleError('')
+
+    try {
+      const loadedImage = await new Promise((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => resolve(img)
+        img.onerror = () => reject(new Error('Não foi possível carregar a imagem para upscale.'))
+        img.src = imageUrl
+      })
+
+      const scale = upscaleScale
+      const canvas = document.createElement('canvas')
+      canvas.width = loadedImage.width * scale
+      canvas.height = loadedImage.height * scale
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        throw new Error('Canvas indisponível para aplicar upscale.')
+      }
+
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(loadedImage, 0, 0, canvas.width, canvas.height)
+
+      const dataUrl = canvas.toDataURL('image/png')
+      setUpscaledImageUrl(dataUrl)
+    } catch (error) {
+      setUpscaleError(
+        error.message ||
+          'Falha ao gerar o upscale. Verifique se a imagem permite processamento local.',
+      )
+    } finally {
+      setIsUpscaling(false)
     }
   }
 
@@ -766,6 +824,16 @@ export default function App() {
             <span>Lens: {lens}</span>
             <span>AR: {aspectRatio}</span>
           </div>
+          <div className="field-inline toggle-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={preferBase64}
+                onChange={(event) => setPreferBase64(event.target.checked)}
+              />
+              Preferir base64 (evita CORS no upscale)
+            </label>
+          </div>
           <div className="cta-row">
             <button className="primary" type="button">
               Copiar prompt
@@ -776,10 +844,51 @@ export default function App() {
           </div>
           <div className="generation-status">
             {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
+            {imageNotice ? <p className="notice-text">{imageNotice}</p> : null}
             {!errorMessage && imageUrl ? (
               <div className="image-preview">
                 <p className="eyebrow">Prévia Together</p>
                 <img src={imageUrl} alt="Imagem gerada pela Together" />
+                <div className="upscale-panel">
+                  <div className="field-inline">
+                    <label>Upscale</label>
+                    <select
+                      value={upscaleScale}
+                      onChange={(event) => setUpscaleScale(Number(event.target.value))}
+                    >
+                      {upscaleScales.map((scale) => (
+                        <option key={scale} value={scale}>
+                          {scale}x
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      className="ghost"
+                      type="button"
+                      onClick={handleUpscaleImage}
+                      disabled={isUpscaling}
+                    >
+                      {isUpscaling ? 'Aumentando...' : `Upscale ${upscaleScale}x`}
+                    </button>
+                  </div>
+                  <p className="mini">
+                    Upscale local via canvas para gerar rapidamente uma versão maior da imagem.
+                  </p>
+                  {upscaleError ? <p className="error-text">{upscaleError}</p> : null}
+                  {upscaledImageUrl ? (
+                    <div className="upscale-preview">
+                      <p className="eyebrow">Upscale {upscaleScale}x</p>
+                      <img src={upscaledImageUrl} alt={`Upscale ${upscaleScale}x`} />
+                      <a
+                        className="ghost"
+                        href={upscaledImageUrl}
+                        download={`promptlab-upscale-${upscaleScale}x.png`}
+                      >
+                        Baixar upscale
+                      </a>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>
