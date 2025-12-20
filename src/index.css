@@ -420,6 +420,11 @@ label {
   margin: 0;
 }
 
+.notice-text {
+  color: #fcd34d;
+  margin: 6px 0 0;
+}
+
 .image-preview {
   margin-top: 12px;
   padding: 12px;
@@ -476,6 +481,23 @@ label {
   gap: 12px;
   margin-top: 12px;
   flex-wrap: wrap;
+}
+
+.toggle-row {
+  margin-top: 12px;
+}
+
+.toggle-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #c8c5d9;
+}
+
+.toggle-row input {
+  width: auto;
+  accent-color: var(--accent, #7c3aed);
 }
 
 .helper,

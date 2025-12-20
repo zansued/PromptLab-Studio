@@ -256,6 +256,8 @@ export default function App() {
   const [upscaleScale, setUpscaleScale] = useState(2)
   const [upscaledImageUrl, setUpscaledImageUrl] = useState('')
   const [upscaleError, setUpscaleError] = useState('')
+  const [preferBase64, setPreferBase64] = useState(true)
+  const [imageNotice, setImageNotice] = useState('')
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
 
@@ -425,6 +427,7 @@ export default function App() {
     setErrorMessage('')
     setUpscaledImageUrl('')
     setUpscaleError('')
+    setImageNotice('')
 
     try {
       const response = await fetch('https://api.together.xyz/v1/images/generations', {
@@ -437,6 +440,7 @@ export default function App() {
           model: TOGETHER_MODEL,
           prompt,
           disable_safety_checker: false,
+          ...(preferBase64 ? { response_format: 'b64_json' } : {}),
         }),
       })
 
@@ -456,6 +460,12 @@ export default function App() {
       const asDataUri = candidate.startsWith('http')
         ? candidate
         : `data:image/png;base64,${candidate}`
+
+      if (candidate.startsWith('http')) {
+        setImageNotice(
+          'A imagem foi retornada como URL remota. Para upscale local, ative "Preferir base64".',
+        )
+      }
 
       setImageUrl(asDataUri)
     } catch (error) {
@@ -814,6 +824,16 @@ export default function App() {
             <span>Lens: {lens}</span>
             <span>AR: {aspectRatio}</span>
           </div>
+          <div className="field-inline toggle-row">
+            <label>
+              <input
+                type="checkbox"
+                checked={preferBase64}
+                onChange={(event) => setPreferBase64(event.target.checked)}
+              />
+              Preferir base64 (evita CORS no upscale)
+            </label>
+          </div>
           <div className="cta-row">
             <button className="primary" type="button">
               Copiar prompt
@@ -824,6 +844,7 @@ export default function App() {
           </div>
           <div className="generation-status">
             {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
+            {imageNotice ? <p className="notice-text">{imageNotice}</p> : null}
             {!errorMessage && imageUrl ? (
               <div className="image-preview">
                 <p className="eyebrow">Prévia Together</p>
