@@ -226,8 +226,6 @@ function buildPrompt({
 
 export default function App() {
   const currentYear = new Date().getFullYear()
-  const subjectRef = useRef(null)
-  const presetsRef = useRef(null)
   const [idea, setIdea] = useState(
     'Retrato editorial futurista com toque humano e neon, linguagem acessível.',
   )
