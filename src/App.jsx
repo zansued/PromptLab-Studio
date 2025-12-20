@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
 const TOGETHER_API_KEY =
@@ -259,6 +259,8 @@ export default function App() {
   const [preferBase64, setPreferBase64] = useState(true)
   const [useImageProxy, setUseImageProxy] = useState(true)
   const [imageNotice, setImageNotice] = useState('')
+  const [copyStatus, setCopyStatus] = useState('')
+  const copyTimeoutRef = useRef(null)
 
   const palette = useMemo(() => buildPalette(accent, paletteMode), [accent, paletteMode])
 
@@ -328,6 +330,58 @@ export default function App() {
   const scrollToSection = (sectionId) => {
     const section = document.getElementById(sectionId)
     section?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  useEffect(
+    () => () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current)
+      }
+    },
+    [],
+  )
+
+  const showCopyStatus = (message) => {
+    setCopyStatus(message)
+    if (copyTimeoutRef.current) {
+      clearTimeout(copyTimeoutRef.current)
+    }
+    copyTimeoutRef.current = window.setTimeout(() => {
+      setCopyStatus('')
+    }, 2500)
+  }
+
+  const fallbackCopyText = (text) => {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'absolute'
+    textarea.style.left = '-9999px'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return success
+  }
+
+  const handleCopyPrompt = async () => {
+    if (!prompt) return
+    let copied = false
+
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(prompt)
+        copied = true
+      } catch (error) {
+        copied = false
+      }
+    }
+
+    if (!copied) {
+      copied = fallbackCopyText(prompt)
+    }
+
+    showCopyStatus(copied ? 'Prompt copiado!' : 'Não foi possível copiar o prompt.')
   }
 
   const applyPreset = (preset) => {
@@ -872,13 +926,14 @@ export default function App() {
             </div>
           </div>
           <div className="cta-row">
-            <button className="primary" type="button">
+            <button className="primary" type="button" onClick={handleCopyPrompt}>
               Copiar prompt
             </button>
             <button className="ghost" type="button" onClick={handleGenerateImage} disabled={isGenerating}>
               {isGenerating ? 'Gerando imagem...' : 'Gerar imagem'}
             </button>
           </div>
+          {copyStatus ? <p className="notice-text copy-toast">{copyStatus}</p> : null}
           <div className="generation-status">
             {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
             {imageNotice ? <p className="notice-text">{imageNotice}</p> : null}

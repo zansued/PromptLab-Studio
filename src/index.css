@@ -425,6 +425,11 @@ label {
   margin: 6px 0 0;
 }
 
+.copy-toast {
+  margin-top: 10px;
+  font-weight: 600;
+}
+
 .image-preview {
   margin-top: 12px;
   padding: 12px;
