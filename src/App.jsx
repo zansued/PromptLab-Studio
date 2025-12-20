@@ -314,6 +314,39 @@ export default function App() {
   }, [accent])
 
   const handleAccentChange = (event) => setAccent(event.target.value)
+  const handleWheelClick = (event) => {
+    const { clientX, clientY, currentTarget } = event
+
+    if (clientX == null || clientY == null) {
+      return
+    }
+
+    const rect = currentTarget.getBoundingClientRect()
+    const x = clientX - rect.left - rect.width / 2
+    const y = clientY - rect.top - rect.height / 2
+    const angle = (Math.atan2(y, x) * 180) / Math.PI
+    const hue = (angle + 90 + 360) % 360
+
+    setAccent(hslToHex(hue, 0.72, 0.58))
+  }
+
+  const handleWheelKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleWheelClick(event)
+      return
+    }
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+      event.preventDefault()
+      setAccent((current) => shiftHue(current, -5))
+    }
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setAccent((current) => shiftHue(current, 5))
+    }
+  }
 
   const handleWheelClick = (event) => {
     const wheel = event.currentTarget
@@ -650,8 +683,9 @@ export default function App() {
               className="color-wheel interactive"
               style={{ background: colorWheelGradient }}
               onClick={handleWheelClick}
+              onKeyDown={handleWheelKeyDown}
               role="button"
-              aria-label="Selecionar cor principal pela roda"
+              aria-label="Selecionar cor principal pela roda. Use Enter ou Espaço para escolher e setas para ajustar a matiz."
               tabIndex={0}
             >
               <span
@@ -825,8 +859,9 @@ export default function App() {
               className="color-wheel interactive"
               style={{ background: colorWheelGradient }}
               onClick={handleWheelClick}
+              onKeyDown={handleWheelKeyDown}
               role="button"
-              aria-label="Selecionar cor principal pela roda"
+              aria-label="Selecionar cor principal pela roda. Use Enter ou Espaço para escolher e setas para ajustar a matiz."
               tabIndex={0}
             >
               <span
