@@ -5,8 +5,6 @@ const TOGETHER_API_KEY =
   import.meta.env.VITE_TOGETHER_API_KEY ||
   'd9bc21bb4dccafd70d81a9359655be41176e08d8db07f00ea2a0dfbbd5024afe'
 
-const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
-
 const shotTypes = [
   'Close-up',
   'Medium shot',
