@@ -5,8 +5,6 @@ const TOGETHER_API_KEY =
   import.meta.env.VITE_TOGETHER_API_KEY ||
   'd9bc21bb4dccafd70d81a9359655be41176e08d8db07f00ea2a0dfbbd5024afe'
 
-const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
-
 const shotTypes = [
   'Close-up',
   'Medium shot',
@@ -227,6 +225,7 @@ function buildPrompt({
 }
 
 export default function App() {
+  const currentYear = new Date().getFullYear()
   const [idea, setIdea] = useState(
     'Retrato editorial futurista com toque humano e neon, linguagem acessível.',
   )
@@ -746,6 +745,19 @@ export default function App() {
           </div>
         </section>
       </main>
+      <footer className="site-footer">
+        <div className="footer-content">
+          <div>
+            <p className="footer-title">PromptLab Studio</p>
+            <p className="footer-subtitle">Criado por Guilherme Zanini de Sá</p>
+          </div>
+          <div className="footer-meta">
+            <span>© {currentYear} Guilherme Zanini de Sá. Todos os direitos reservados.</span>
+            <span className="footer-divider">•</span>
+            <span>Feito com amor por prompts e design.</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
