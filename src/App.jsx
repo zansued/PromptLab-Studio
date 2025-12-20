@@ -5,8 +5,6 @@ const TOGETHER_API_KEY =
   import.meta.env.VITE_TOGETHER_API_KEY ||
   'd9bc21bb4dccafd70d81a9359655be41176e08d8db07f00ea2a0dfbbd5024afe'
 
-const TOGETHER_MODEL = 'black-forest-labs/FLUX.1-schnell-Free'
-
 const shotTypes = [
   'Close-up',
   'Medium shot',
@@ -227,6 +225,9 @@ function buildPrompt({
 }
 
 export default function App() {
+  const currentYear = new Date().getFullYear()
+  const subjectRef = useRef(null)
+  const presetsRef = useRef(null)
   const [idea, setIdea] = useState(
     'Retrato editorial futurista com toque humano e neon, linguagem acessível.',
   )
@@ -305,6 +306,41 @@ export default function App() {
   }, [accent])
 
   const handleAccentChange = (event) => setAccent(event.target.value)
+
+  const handleWheelClick = (event) => {
+    const wheel = event.currentTarget
+    if (!wheel) return
+
+    const { left, top, width, height } = wheel.getBoundingClientRect()
+    const x = event.clientX - left - width / 2
+    const y = event.clientY - top - height / 2
+    const angle = (Math.atan2(y, x) * 180) / Math.PI
+    const hue = (angle + 450) % 360
+    setAccent(hslToHex(hue, 0.72, 0.58))
+  }
+
+  const scrollToSection = (sectionRef) => {
+    sectionRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const applyPreset = (preset) => {
+    const { values } = preset
+    if (!values) return
+    setIdea(values.idea)
+    setSubject(values.subject)
+    setShotType(values.shotType)
+    setCameraAngle(values.cameraAngle)
+    setMood(values.mood)
+    setStyle(values.style)
+    setEnvironment(values.environment)
+    setColorGrade(values.colorGrade)
+    setLighting(values.lighting)
+    setLens(values.lens)
+    setAspectRatio(values.aspectRatio)
+    setPaletteMode(values.paletteMode)
+    setAccent(values.accent)
+    setNegatives(values.negatives)
+  }
 
   const applyIdeaToSubject = (ideaText) => {
     const condensed = ideaText.trim()
@@ -746,6 +782,19 @@ export default function App() {
           </div>
         </section>
       </main>
+      <footer className="site-footer">
+        <div className="footer-content">
+          <div>
+            <p className="footer-title">PromptLab Studio</p>
+            <p className="footer-subtitle">Criado por Guilherme Zanini de Sá</p>
+          </div>
+          <div className="footer-meta">
+            <span>© {currentYear} Guilherme Zanini de Sá. Todos os direitos reservados.</span>
+            <span className="footer-divider">•</span>
+            <span>Feito com amor por prompts e design.</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
