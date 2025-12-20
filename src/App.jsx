@@ -227,6 +227,7 @@ function buildPrompt({
 }
 
 export default function App() {
+  const currentYear = new Date().getFullYear()
   const [idea, setIdea] = useState(
     'Retrato editorial futurista com toque humano e neon, linguagem acessível.',
   )
@@ -746,6 +747,19 @@ export default function App() {
           </div>
         </section>
       </main>
+      <footer className="site-footer">
+        <div className="footer-content">
+          <div>
+            <p className="footer-title">PromptLab Studio</p>
+            <p className="footer-subtitle">Criado por Guilherme Zanini de Sá</p>
+          </div>
+          <div className="footer-meta">
+            <span>© {currentYear} Guilherme Zanini de Sá. Todos os direitos reservados.</span>
+            <span className="footer-divider">•</span>
+            <span>Feito com amor por prompts e design.</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
