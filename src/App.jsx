@@ -305,6 +305,41 @@ export default function App() {
 
   const handleAccentChange = (event) => setAccent(event.target.value)
 
+  const handleWheelClick = (event) => {
+    const wheel = event.currentTarget
+    if (!wheel) return
+
+    const { left, top, width, height } = wheel.getBoundingClientRect()
+    const x = event.clientX - left - width / 2
+    const y = event.clientY - top - height / 2
+    const angle = (Math.atan2(y, x) * 180) / Math.PI
+    const hue = (angle + 450) % 360
+    setAccent(hslToHex(hue, 0.72, 0.58))
+  }
+
+  const scrollToSection = (sectionRef) => {
+    sectionRef?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const applyPreset = (preset) => {
+    const { values } = preset
+    if (!values) return
+    setIdea(values.idea)
+    setSubject(values.subject)
+    setShotType(values.shotType)
+    setCameraAngle(values.cameraAngle)
+    setMood(values.mood)
+    setStyle(values.style)
+    setEnvironment(values.environment)
+    setColorGrade(values.colorGrade)
+    setLighting(values.lighting)
+    setLens(values.lens)
+    setAspectRatio(values.aspectRatio)
+    setPaletteMode(values.paletteMode)
+    setAccent(values.accent)
+    setNegatives(values.negatives)
+  }
+
   const applyIdeaToSubject = (ideaText) => {
     const condensed = ideaText.trim()
     if (!condensed) return
