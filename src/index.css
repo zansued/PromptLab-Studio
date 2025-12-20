@@ -436,6 +436,32 @@ label {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.upscale-panel {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.upscale-panel .field-inline select {
+  width: auto;
+  min-width: 90px;
+}
+
+.upscale-preview {
+  margin-top: 6px;
+  display: grid;
+  gap: 8px;
+}
+
+.upscale-preview img {
+  max-width: 360px;
+}
+
+.upscale-preview .ghost {
+  text-align: center;
+  text-decoration: none;
+}
+
 .pill {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
