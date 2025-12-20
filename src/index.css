@@ -466,3 +466,57 @@ label {
   margin-top: 10px;
   text-align: center;
 }
+
+.site-footer {
+  margin-top: 48px;
+  padding: 24px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(6, 5, 18, 0.85));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.site-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 55%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.footer-content {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.footer-subtitle {
+  margin: 6px 0 0;
+  color: #c8c5d9;
+}
+
+.footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #b6b2c9;
+  font-size: 0.95rem;
+}
+
+.footer-divider {
+  color: rgba(255, 255, 255, 0.35);
+}
